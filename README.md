@@ -1,5 +1,5 @@
 # playing-with-spring-boot
-Hello, this is a project build with spring boot, main dependencies :
+Hello, this is a project builded with spring boot, main dependencies :
 - spring-boot-starter-data-jpa
 - spring-boot-starter-thymeleaf
 - spring-boot-starter-web
