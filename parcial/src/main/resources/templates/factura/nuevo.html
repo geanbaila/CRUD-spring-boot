@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es" xmlsn:th="https://www.thymeleaf.org">
+<head th:insert="fragment/header.html :: header"></head>
+<body>
+    <div th:insert="fragment/nav.html ::nav"></div> 
+    <div class="container">
+        <form class="row g-3" th:action="@{/grabar}" method="POST">
+            <div class="col-md-3">
+                <label for="numero" class="form-label">N&uacute;mero</label>
+                <input type="text" class="form-control" name="numero" value="">
+            </div>
+            <div class="col-md-9">
+                <label for="cliente" class="form-label">Cliente</label>
+                <input type="text" class="form-control" name="cliente" value="GEAN CARLOS">
+            </div>
+            <div class="col-md-3 col-6">
+                <label for="fecha" class="form-label">Fecha</label>
+                <input type="text" class="form-control" name="fecha" value="20/04/2021">
+            </div>
+            <div class="col-md-3 col-6">
+                <label for="moneda" class="form-label">Moneda</label>
+                <select class="form-select" name="moneda"></select>
+            </div>
+            <div class="col-md-6">
+                <label for="monto" class="form-label">Monto</label>
+                <input type="hidden" class="form-control" name="monto">
+                <input type="text" class="form-control" name="monto" disabled>
+            </div>
+            <hr>
+            <table class="table table-warning table-hover table-striped">
+                <thead>
+                    <tr>
+                        <td>Cantidad</td>
+                        <th>Producto</th>
+                        <th>P. Unitario</th>
+                        <th>Parcial</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input class="form-control" type="text" name="cantidad"></td>
+                        <td><select class="form-select" name="cbproducto"></select></td>
+                        <td><input class="form-control"  type="text" name="punitario"></td>
+                        <td><input class="form-control" type="text" name="parcial"></td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-control"  type="text" name="cantidad"></td>
+                        <td><select class="form-select" name="cbproducto"></select></td>
+                        <td><input class="form-control"  type="text" name="punitario"></td>
+                        <td><input class="form-control" type="text" name="parcial"></td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-control"  type="text" name="cantidad"></td>
+                        <td><select class="form-select" name="cbproducto"></select></td>
+                        <td><input class="form-control"  type="text" name="punitario"></td>
+                        <td><input class="form-control" type="text" name="parcial"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="col-12">
+                <button type="submit" class="btn btn-warning">Grabar</button>
+                <a href="/" class="btn btn-light">Cancelar</a>
+            </div>
+        </form>
+        <footer th:insert="fragment/footer.html ::footer"></footer>
+        <script>
+            function calcular(){
+                var total = 0.0;
+                $("tbody").find("input[name=parcial]").each(function(index,el){
+                    var subtotal = $(el).val().toString();
+                    subtotal = (subtotal == null || subtotal =='' || subtotal == 'NaN')?0:subtotal;
+                    total = total+parseFloat(subtotal);
+                });
+                var moneda = $("select[name=moneda]").val();
+                $.ajax({
+                    url:'/RESTfull/moneda/tipocambio/'+moneda,
+                    type:'POST',
+                    beforeSend:function(){
+                        $("input[name='monto']").val("0.0");
+                    },
+                    success:function(result){
+                        total = total*result.tipoCambio
+                        $("input[name='monto']").val(total.toFixed(2));
+                    }
+                });
+            }
+
+            $(document).ready(function(){
+                $.ajax({
+                    url:'/RESTfull/producto',
+                    dataType:'JSON',
+                    type:'POST',
+                    beforeSend:function(){
+                        $("select[name='cbproducto']").html("<option value='0'>-- seleccione --</option>")
+                    },
+                    success:function(result){
+                        $(result).each(function(index,el){
+                            $("select[name='cbproducto']").append("<option value='"+el.id+"'>"+el.denominacion+"</option>");
+                        })
+                    }
+                });
+
+                $.ajax({
+                    url:'/RESTfull/moneda',
+                    dataType:'JSON',
+                    type:'POST',
+                    success:function(result){
+                        $(result).each(function(index,el){
+                            $("select[name='moneda']").append("<option value='"+el.id+"'>"+el.denominacion+"</option>");
+                        })
+                    }
+                })
+
+                $("input[name='fecha']").mask('00/00/0000',{placeholder:'DD/MM/YYYY'});
+                $("input[name='numero']").mask('F000',{placeholder:'F000'});
+                $("input[name='punitario']").mask('000.00',{placeholder:'000.00'});
+                $("input[name='parcial']").mask('000.00',{placeholder:'000.00'});
+                $("input[name='monto']").mask('000000000.00',{placeholder:'000000000.00'});
+                $("input[name='cantidad']").mask('000',{placeholder:'000'});
+
+                $("input[name='cantidad']").keyup(function(){
+                    var cantidad = $(this).val();
+                    var tr = $(this).parent().parent();
+                    var producto = $(tr).find("select[name=cbproducto]").val();
+                    if(producto==0){
+                        $(tr).find("input[name=punitario]").val("0");
+                        $(tr).find("input[name=parcial]").val("0");
+                        calcular();
+                    }else{
+                        $.ajax({
+                            url:'/RESTfull/producto/'+producto,
+                            dataType:'JSON',
+                            type:'POST',
+                            beforeSend:function(){
+                                $(tr).find("input[name=punitario]").val("0");
+                                $(tr).find("input[name=parcial]").val("0");
+                            },
+                            success:function(result){
+                                var parcial = (result.precioUnitario*cantidad).toFixed(2);
+                                $(tr).find("input[name=parcial]").val(parcial);
+                                $(tr).find("input[name=punitario]").val(result.precioUnitario);
+                            },
+                            complete:function(){
+                                calcular();
+                            }
+                        });
+                    }
+                   
+                });
+                
+                $("select[name=cbproducto]").change(function(){
+                    $(this).parent().parent().find("input[name=cantidad]").trigger("keyup");
+                });
+
+                $("select[name=moneda]").change(function(){
+                    calcular();
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

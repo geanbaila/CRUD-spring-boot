@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es" xmlsn:th="https://www.thymeleaf.org">
+
+<head th:insert="fragment/header.html :: header"></head>
+
+<body>
+  <div th:insert="fragment/nav.html ::nav"></div>
+  <div class="container">
+    <div th:insert="factura/listar.html :: listarFactura"></div>
+    <footer th:insert="fragment/footer.html :: footer"></footer>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,54 @@
+<div th:fragment="listarFactura">
+<a th:href="@{/nuevo}" class="btn btn-warning">Insertar</a>
+<br/><br/>
+
+<div class="feedback"></div>
+<table class="table table-warning table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Número</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Moneda</th>
+            <th scope="col">Monto</th>
+            <th scope="col" colspan="2">Acciones</th>
+        </tr>
+    </thead>
+    <tbody th:each="factura : ${facturas}"  th:remove="tag">
+        <tr>
+            <td width="50" th:text="${factura.id}"></td>
+            <td th:text="${factura.numero}"></td>
+            <td th:text="${factura.fecha}"></td>
+            <td th:text="${factura.getCliente().getNombre()}"></td>
+            <div th:if="${factura.monedaId==1}">
+                <td>SOLES</td>
+            </div>
+            <div th:unless="${factura.monedaId==1}">
+                <td>DOLARES</td>
+            </div>
+            <td th:text="${factura.monto}"></td>
+            <td width="50" >&nbsp;<a th:href="@{/editar/{id} (id=${factura.id})}"><i data-feather="edit"></i></a></td>
+            <td width="50" >&nbsp;<a th:onclick="|eliminar('${factura.id}',this)|"><i data-feather="trash-2"></i></a></td>
+        </tr>
+    </tbody>
+</table>
+<script>
+    function eliminar(id,el){
+        if(confirm("¿Seguro que desea eliminar el registro "+id+"?")){
+            $.ajax({
+                url:'/RESTfull/eliminar/'+id,
+                type:'POST',
+                success:function(result){
+                    $(el).parent().parent().remove();
+                    var feedback = '<div class="alert alert-success alert-dismissible fade show" role="alert">'+
+                        '<strong>Bien!</strong> Has eliminado la factura con identificador: '+id+'.'+
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'+
+                        '</div>';
+                    $(".feedback").html(feedback);
+                }
+            });
+        }
+    }
+</script>
+</div>
